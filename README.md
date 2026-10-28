@@ -9,7 +9,7 @@ api/index.js                  Vercel serverless entry (exports the Express app)
 app.js                        Express app: sessions, CSRF, routes, error pages
 server.js                     Local development server (http://localhost:5221)
 data/db.js                    libSQL/SQLite schema, users.role migration, reception seed
-services/assistantService.js  All AI code (Claude via @anthropic-ai/sdk + system prompt)
+services/assistantService.js  All AI code (OpenAI, or Claude as fallback, + system prompt)
 services/appointmentService.js  Appointment queries and status updates
 services/depositService.js    Stripe Checkout deposit (AED 100) and payment verification
 services/bookingSchedule.js   Doctors, 30-minute slots, Dubai time rules
@@ -40,8 +40,9 @@ Without `TURSO_DATABASE_URL`, data is stored in `data/lakeside.db` (ignored by g
 | --- | --- |
 | `SESSION_SECRET` | Signs the session cookie. At least 32 random characters. |
 | `RECEPTION_PASSWORD` | Seeds/updates `reception@lakeside.local` with role `reception` (bcrypt-hashed). Override the email with `RECEPTION_EMAIL`. |
-| `ANTHROPIC_API_KEY` | Server-side key for the Ask Lakeside assistant. Never exposed to the browser. |
-| `ANTHROPIC_MODEL` | Optional model override (default `claude-haiku-5-5`). |
+| `OPENAI_API_KEY` | Server-side key for the Ask Lakeside assistant (used first). Never exposed to the browser. |
+| `OPENAI_MODEL` | Optional OpenAI model override (default `gpt-4.1-mini`). |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | Optional Claude fallback, used only when `OPENAI_API_KEY` is empty (default model `claude-haiku-5-5`). |
 | `STRIPE_SECRET_KEY` | Stripe **test** secret key (`sk_test_...`). Live keys are rejected. |
 | `BASE_URL` | Public site URL used for Stripe redirects, e.g. `https://your-app.vercel.app`. |
 | `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` | Persistent libSQL database for Vercel. |

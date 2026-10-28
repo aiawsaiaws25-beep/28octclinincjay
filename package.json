@@ -21,10 +21,10 @@
     "ejs": "^7.0.2",
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.1",
+    "openai": "^7.45.1",
     "stripe": "^23.0.1"
   },
   "devDependencies": {
     "supertest": "^7.3.1"
   }
 }
-

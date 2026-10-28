@@ -1,9 +1,11 @@
 const Anthropic = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
 
 const MAX_MESSAGES = 12;
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_CONVERSATION_LENGTH = 10000;
-const DEFAULT_MODEL = 'claude-haiku-5-5';
+const DEFAULT_OPENAI_MODEL = 'gpt-4.1-mini';
+const DEFAULT_ANTHROPIC_MODEL = 'claude-haiku-5-5';
 const SIGN_OFF = '— Lakeside Medical Clinic, powered by London International · lisrc.ae';
 
 const SYSTEM_PROMPT = `You are Ask Lakeside, the friendly information assistant for Lakeside Medical Clinic.
@@ -23,29 +25,64 @@ ${SIGN_OFF}`;
 
 class AssistantNotConfiguredError extends Error {
   constructor() {
-    super('ANTHROPIC_API_KEY is not configured.');
+    super('No AI provider key is configured (set OPENAI_API_KEY or ANTHROPIC_API_KEY).');
   }
 }
 
 class AssistantUpstreamError extends Error {}
 
-let injectedClient;
-let cachedClient;
-let cachedKey;
+let injected;
+const cache = {};
 
-function setClient(client) {
-  injectedClient = client;
+// Tests can inject a fake client: setClient(client, 'openai' | 'anthropic').
+function setClient(client, provider = 'openai') {
+  injected = client ? { provider, client } : undefined;
 }
 
-function getClient() {
-  if (injectedClient) return injectedClient;
-  const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim();
-  if (!apiKey) throw new AssistantNotConfiguredError();
-  if (!cachedClient || cachedKey !== apiKey) {
-    cachedClient = new Anthropic({ apiKey, maxRetries: 1, timeout: 30000 });
-    cachedKey = apiKey;
+function cached(name, apiKey, create) {
+  if (!cache[name] || cache[name].apiKey !== apiKey) cache[name] = { apiKey, client: create(apiKey) };
+  return cache[name].client;
+}
+
+// OpenAI is used whenever OPENAI_API_KEY is set; Claude is the fallback.
+function getProvider() {
+  if (injected) return injected;
+  const openaiKey = (process.env.OPENAI_API_KEY || '').trim();
+  if (openaiKey) {
+    return { provider: 'openai', client: cached('openai', openaiKey, (apiKey) => new OpenAI({ apiKey, maxRetries: 1, timeout: 30000 })) };
   }
-  return cachedClient;
+  const anthropicKey = (process.env.ANTHROPIC_API_KEY || '').trim();
+  if (anthropicKey) {
+    return { provider: 'anthropic', client: cached('anthropic', anthropicKey, (apiKey) => new Anthropic({ apiKey, maxRetries: 1, timeout: 30000 })) };
+  }
+  throw new AssistantNotConfiguredError();
+}
+
+function isReasoningModel(model) {
+  return /^(o\d|gpt-5)/.test(model) && !/chat-latest/.test(model);
+}
+
+async function askOpenAI(client, messages) {
+  const model = (process.env.OPENAI_MODEL || '').trim() || DEFAULT_OPENAI_MODEL;
+  const reasoning = isReasoningModel(model);
+  const response = await client.chat.completions.create({
+    model,
+    // Reasoning models spend part of the budget on hidden reasoning, so they need more headroom.
+    max_completion_tokens: reasoning ? 2000 : 400,
+    ...(reasoning ? { reasoning_effort: 'low' } : { temperature: 0.3 }),
+    messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages.map(({ role, content }) => ({ role, content }))]
+  });
+  return response?.choices?.[0]?.message?.content;
+}
+
+async function askAnthropic(client, messages) {
+  const response = await client.messages.create({
+    model: (process.env.ANTHROPIC_MODEL || '').trim() || DEFAULT_ANTHROPIC_MODEL,
+    max_tokens: 300,
+    system: SYSTEM_PROMPT,
+    messages: messages.map(({ role, content }) => ({ role, content }))
+  });
+  return response?.content?.find((block) => block.type === 'text')?.text;
 }
 
 function isValidConversation(messages) {
@@ -73,24 +110,17 @@ function withSignOff(reply) {
 }
 
 async function getReply(messages) {
-  const client = getClient();
+  const { provider, client } = getProvider();
   if (!isValidConversation(messages)) throw new TypeError('The conversation is invalid.');
 
-  let response;
+  let text;
   try {
-    response = await client.messages.create({
-      model: (process.env.ANTHROPIC_MODEL || '').trim() || DEFAULT_MODEL,
-      max_tokens: 300,
-      system: SYSTEM_PROMPT,
-      messages: messages.map(({ role, content }) => ({ role, content }))
-    });
+    text = provider === 'openai' ? await askOpenAI(client, messages) : await askAnthropic(client, messages);
   } catch (error) {
-    throw new AssistantUpstreamError(`Anthropic request failed${error?.status ? ` with HTTP ${error.status}` : ''}.`);
+    throw new AssistantUpstreamError(`${provider} request failed${error?.status ? ` with HTTP ${error.status}` : ''}: ${error?.message ?? 'unknown error'}`);
   }
-
-  const text = response?.content?.find((block) => block.type === 'text')?.text;
   if (typeof text !== 'string' || !text.trim()) {
-    throw new AssistantUpstreamError('Anthropic returned an empty or invalid response.');
+    throw new AssistantUpstreamError(`${provider} returned an empty or invalid response.`);
   }
   return withSignOff(text);
 }

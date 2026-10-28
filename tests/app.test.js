@@ -9,9 +9,10 @@ process.env.DATABASE_URL = `file:${dbFile.replace(/\\/g, '/')}`;
 process.env.RECEPTION_PASSWORD = 'Reception-Test-123!';
 process.env.SESSION_SECRET = 'test-session-secret-that-is-at-least-32-chars';
 process.env.BASE_URL = 'http://localhost:5221';
-delete process.env.ANTHROPIC_API_KEY;
-delete process.env.STRIPE_SECRET_KEY;
-delete process.env.TURSO_DATABASE_URL;
+// Empty values (not deletes) stop dotenv from loading real keys from .env during tests.
+for (const name of ['OPENAI_API_KEY', 'OPENAI_MODEL', 'ANTHROPIC_API_KEY', 'ANTHROPIC_MODEL', 'STRIPE_SECRET_KEY', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN']) {
+  process.env[name] = '';
+}
 delete process.env.VERCEL;
 
 const request = require('supertest');
@@ -264,20 +265,40 @@ test('chat endpoint validates input, requires a key and adds the sign-off', asyn
 
   let captured;
   assistant.setClient({
-    messages: {
-      async create(params) {
-        captured = params;
-        return { content: [{ type: 'text', text: 'We are open Monday to Saturday, 9am-9pm.' }] };
+    chat: {
+      completions: {
+        async create(params) {
+          captured = params;
+          return { choices: [{ message: { content: 'We are open Monday to Saturday, 9am-9pm.' } }] };
+        }
       }
     }
-  });
+  }, 'openai');
   try {
     const response = await request(server).post('/api/chat').send({ messages: [{ role: 'user', content: 'Hours?' }] });
     assert.equal(response.status, 200);
     assert.ok(response.body.reply.endsWith(assistant.SIGN_OFF));
+    assert.equal(captured.model, 'gpt-4.1-mini');
+    assert.equal(captured.messages[0].role, 'system');
+    assert.match(captured.messages[0].content, /Do not give medical advice/);
+    assert.match(captured.messages[0].content, /Dr\. Raj Mehta \(Cardiologist\)/);
+    assert.deepEqual(captured.messages.at(-1), { role: 'user', content: 'Hours?' });
+
+    assistant.setClient({
+      messages: {
+        async create(params) {
+          captured = params;
+          return { content: [{ type: 'text', text: 'Closed on Sunday.' }] };
+        }
+      }
+    }, 'anthropic');
+    const fallback = await request(server).post('/api/chat').send({ messages: [{ role: 'user', content: 'Sunday?' }] });
+    assert.equal(fallback.status, 200);
     assert.equal(captured.model, 'claude-haiku-5-5');
     assert.match(captured.system, /Do not give medical advice/);
-    assert.match(captured.system, /Dr\. Raj Mehta \(Cardiologist\)/);
+
+    assistant.setClient({ chat: { completions: { async create() { throw Object.assign(new Error('boom'), { status: 401 }); } } } }, 'openai');
+    assert.equal((await request(server).post('/api/chat').send({ messages: [{ role: 'user', content: 'Hi' }] })).status, 502);
   } finally {
     assistant.setClient(undefined);
   }
