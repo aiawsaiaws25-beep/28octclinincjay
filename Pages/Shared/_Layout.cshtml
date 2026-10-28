@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Lakeside Medical Clinic in JLT, Dubai. Explore general physician, ENT, dental and cardiology care, opening hours and contact information." />
+    <meta name="theme-color" content="#153f68" />
+    <title>@ViewData["Title"] - Lakeside Medical Clinic</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
+            <div class="container">
+                <a class="navbar-brand clinic-brand" asp-page="/Index" aria-label="Lakeside Medical Clinic home">
+                    <span class="brand-mark" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
+                    <span>Lakeside<span class="brand-subtitle">MEDICAL CLINIC</span></span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navigation" aria-controls="main-navigation" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="main-navigation">
+                    <ul class="navbar-nav ms-auto align-items-lg-center">
+                        <li class="nav-item"><a class="nav-link" asp-page="/Index" asp-fragment="home">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-page="/Index" asp-fragment="specialties">Our specialties</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-page="/Index" asp-fragment="about">About us</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-page="/Index" asp-fragment="contact">Contact</a></li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-page="/MyAppointments">My Appointments</a></li>
+                            <li class="nav-item">
+                                <form method="post" asp-page="/Account/Logout">
+                                    <button type="submit" class="nav-link">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-page="/Account/Register">Register</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-page="/Account/Login">Login</a></li>
+                        }
+                    </ul>
+                    <a class="btn btn-primary nav-booking" asp-page="/Booking/Index">Book an appointment <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main id="main-content" tabindex="-1">
+        @RenderBody()
+    </main>
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-top">
+                <a class="clinic-brand footer-brand" asp-page="/Index">
+                    <span class="brand-mark" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
+                    <span>Lakeside<span class="brand-subtitle">MEDICAL CLINIC</span></span>
+                </a>
+                <p>Expert care, close to home.</p>
+                <a asp-page="/Index" asp-fragment="home" class="back-to-top">Back to top <i class="bi bi-arrow-up" aria-hidden="true"></i></a>
+            </div>
+            <div class="footer-bottom">
+                <small>&copy; @DateTime.UtcNow.Year Lakeside Medical Clinic. All rights reserved.</small>
+                <small>Lakeside Medical Clinic &middot; built at London International &middot; <a href="https://lisrc.ae" target="_blank" rel="noopener noreferrer">lisrc.ae<span class="visually-hidden"> (opens in a new tab)</span></a> &middot; by [Your name]</small>
+            </div>
+        </div>
+    </footer>
+    <partial name="_AssistantChat" />
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/assistant-chat.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

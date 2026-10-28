@@ -1,0 +1,67 @@
+@page
+@model LakesideMedical.Pages.MyAppointmentsModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "My Appointments";
+}
+<section class="section-space">
+    <div class="container">
+        <div class="section-heading">
+            <div><span class="eyebrow">YOUR PATIENT SPACE</span><h1 class="page-title mb-0">My Appointments</h1></div>
+            <a class="btn btn-primary" asp-page="/Booking/Index">Book an appointment</a>
+        </div>
+        <p>Appointments for your account email, with the latest appointment date first. All times are in Dubai time (UTC+4).</p>
+        @if (Model.StatusMessage is not null)
+        {
+            <div class="alert alert-success" role="status">@Model.StatusMessage</div>
+        }
+        @if (Model.Appointments.Count == 0)
+        {
+            <div class="booking-panel">
+                <h2 class="form-heading">No appointments yet</h2>
+                <p class="mb-0">Your bookings will appear here when you book with the same email address as your account.</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var appointment in Model.Appointments)
+                {
+                    <div class="col-lg-6">
+                        <article class="booking-panel h-100">
+                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                <h2 class="form-heading mb-0">@appointment.Specialty</h2>
+                                <span class="status-badge @(appointment.Status == "Cancelled" ? "cancelled" : "")">@appointment.Status</span>
+                            </div>
+                            <p>@appointment.Doctor</p>
+                            <dl class="appointment-details compact">
+                                <dt>Date &amp; time</dt><dd>@appointment.AppointmentDateTime.ToString("ddd, d MMM yyyy 'at' h:mm tt", CultureInfo.InvariantCulture)</dd>
+                                <dt>Patient</dt><dd>@appointment.PatientName</dd>
+                                <dt>Reference</dt><dd>LM-@appointment.Id</dd>
+                            </dl>
+                            @if (appointment.Status == "Pending")
+                            {
+                                <p class="form-text">Deposit payment has not been verified. This appointment is not confirmed.</p>
+                                @if (appointment.StripeSessionId is not null)
+                                {
+                                    <a asp-page="/Booking/Success" asp-route-session_id="@appointment.StripeSessionId">Check payment status</a>
+                                }
+                            }
+                            @if (appointment.Status == "Booked")
+                            {
+                                <form method="post" asp-page-handler="Cancel">
+                                    <input type="hidden" name="id" value="@appointment.Id" />
+                                    <button type="submit" class="btn btn-outline-danger">Cancel<span class="visually-hidden"> appointment LM-@appointment.Id</span></button>
+                                    @if (appointment.StripeSessionId is not null)
+                                    {
+                                        <p class="form-text mt-2">Cancellation does not automatically refund your deposit. Please contact the clinic to request a refund.</p>
+                                    }
+                                </form>
+                            }
+                        </article>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>

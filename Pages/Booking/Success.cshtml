@@ -1,0 +1,57 @@
+@page "/booking-success"
+@model LakesideMedical.Pages.Booking.SuccessModel
+@using System.Globalization
+@{
+    var booked = Model.Appointment?.Status == "Booked";
+    ViewData["Title"] = booked ? "Booking confirmed" : "Payment not completed";
+}
+<section class="section-space">
+    <div class="container booking-container">
+        <div class="booking-panel">
+            @if (Model.ErrorMessage is not null)
+            {
+                <h1 class="page-title">Payment verification unavailable</h1>
+                <div class="alert alert-warning" role="alert">@Model.ErrorMessage</div>
+            }
+            else if (booked)
+            {
+                <span class="confirmation-icon"><i class="bi bi-check-circle" aria-hidden="true"></i></span>
+                <span class="eyebrow">STRIPE TEST PAYMENT VERIFIED</span>
+                <h1 class="page-title">Booking confirmed</h1>
+                <p>Your AED 100 refundable consultation deposit has been paid in Stripe test mode. No real money was charged.</p>
+            }
+            else
+            {
+                <h1 class="page-title">Payment not completed</h1>
+                <div class="alert alert-warning" role="status">
+                    @if (Model.Appointment?.Status == "Cancelled")
+                    {
+                        <span>This appointment is cancelled and has not been rebooked. Contact the clinic about any deposit refund.</span>
+                    }
+                    else
+                    {
+                        <span>Your appointment remains Pending. A redirect alone does not confirm payment. Refresh this page after completing Stripe checkout, or contact the clinic if you need help.</span>
+                    }
+                </div>
+            }
+            @if (Model.Appointment is { } appointment)
+            {
+                <dl class="appointment-details">
+                    <dt>Reference</dt><dd>LM-@appointment.Id</dd>
+                    <dt>Specialty</dt><dd>@appointment.Specialty</dd>
+                    <dt>Doctor</dt><dd>@appointment.Doctor</dd>
+                    <dt>Date &amp; time</dt><dd>@appointment.AppointmentDateTime.ToString("ddd, d MMM yyyy 'at' h:mm tt", CultureInfo.InvariantCulture) (Dubai)</dd>
+                    <dt>Patient</dt><dd>@appointment.PatientName</dd>
+                    <dt>Phone</dt><dd>@appointment.PatientPhone</dd>
+                    <dt>Email</dt><dd>@appointment.PatientEmail</dd>
+                    <dt>Status</dt><dd>@appointment.Status</dd>
+                </dl>
+            }
+            <p class="form-text">Refunds are handled by the clinic through Stripe; cancelling an appointment does not automatically issue a refund. Keep this private checkout link safe.</p>
+            <div class="d-flex flex-wrap gap-3 mt-4">
+                <a class="btn btn-primary" asp-page="/MyAppointments">My Appointments</a>
+                <a class="btn btn-outline-primary" asp-page="/Booking/Index">Back to booking</a>
+            </div>
+        </div>
+    </div>
+</section>

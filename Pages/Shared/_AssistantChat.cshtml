@@ -1,0 +1,28 @@
+<section class="assistant-chat" aria-label="Ask Lakeside chat assistant">
+    <button class="assistant-chat-toggle" type="button" aria-expanded="false" aria-controls="assistant-chat-panel">
+        <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
+        <span>Ask Lakeside</span>
+    </button>
+    <div class="assistant-chat-panel" id="assistant-chat-panel" hidden>
+        <header class="assistant-chat-header">
+            <div>
+                <strong>Ask Lakeside</strong>
+                <span>Clinic information assistant</span>
+            </div>
+            <button class="assistant-chat-close" type="button" aria-label="Close chat">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </header>
+        <div class="assistant-chat-messages" role="log" aria-live="polite" aria-relevant="additions">
+            <p class="assistant-chat-message assistant-chat-reply">Hi! I can help with clinic specialties, doctors, hours, location, or the deposit.
+                <span class="assistant-chat-signoff">— Lakeside Medical Clinic, powered by London International · lisrc.ae</span>
+            </p>
+        </div>
+        <form class="assistant-chat-form">
+            <label class="visually-hidden" for="assistant-chat-input">Your message</label>
+            <input id="assistant-chat-input" name="message" type="text" maxlength="2000" autocomplete="off" placeholder="Ask a question..." required />
+            <button type="submit" aria-label="Send message"><i class="bi bi-send-fill" aria-hidden="true"></i></button>
+        </form>
+        <p class="assistant-chat-disclaimer">Please don't share personal or medical details. No medical advice; seek emergency care for urgent concerns.</p>
+    </div>
+</section>

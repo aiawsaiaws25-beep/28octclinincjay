@@ -1,0 +1,39 @@
+@page
+@model LakesideMedical.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Create a patient account";
+}
+<section class="section-space">
+    <div class="container">
+        <div class="account-panel">
+            <span class="eyebrow">YOUR HEALTH, IN YOUR HANDS</span>
+            <h1 class="page-title">Create an account</h1>
+            <p>Keep track of your appointments in one place.</p>
+            <form method="post">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+                <div class="mb-3">
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <input asp-for="Input.Email" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.Password" class="form-label"></label>
+                    <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-describedby="password-help" />
+                    <div class="form-text" id="password-help">Use 8-100 characters, including uppercase and lowercase letters, a number and a symbol.</div>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="Input.ConfirmPassword" class="form-label"></label>
+                    <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                </div>
+                <button class="btn btn-primary w-100" type="submit">Register</button>
+            </form>
+            <p class="mt-4 mb-0">Already registered? <a asp-page="/Account/Login" asp-route-returnUrl="@Model.ReturnUrl">Log in</a></p>
+        </div>
+    </div>
+</section>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
