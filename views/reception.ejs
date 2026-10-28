@@ -1,0 +1,72 @@
+<%- include('partials/header') %>
+<section class="reception-dashboard">
+    <div class="container">
+        <header class="reception-heading">
+            <div>
+                <span class="eyebrow">LAKESIDE MEDICAL RECEPTION &middot; LONDON INTERNATIONAL &middot; LISRC.AE</span>
+                <h1 class="page-title">Reception</h1>
+                <p class="reception-date"><%= clinicDate %> <span>Dubai time</span></p>
+            </div>
+            <span class="reception-byline">by Aisha Khan</span>
+        </header>
+
+        <div class="reception-count" aria-live="polite">
+            <strong><%= appointmentCount %></strong>
+            <span>appointment<%= appointmentCount === 1 ? '' : 's' %> today</span>
+        </div>
+
+        <% if (message) { %>
+            <p class="alert alert-info" role="status"><%= message %></p>
+        <% } %>
+
+        <% if (appointmentsByDoctor.length === 0) { %>
+            <div class="reception-empty">There are no appointments scheduled for today.</div>
+        <% } else { %>
+            <% appointmentsByDoctor.forEach((group) => { %>
+                <section class="reception-doctor" aria-labelledby="<%= group.headingId %>">
+                    <h2 id="<%= group.headingId %>"><%= group.doctor %></h2>
+                    <div class="table-responsive">
+                        <table class="table reception-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Patient</th>
+                                    <th scope="col">Time</th>
+                                    <th scope="col">Specialty</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col"><span class="visually-hidden">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% group.rows.forEach((appointment) => {
+                                     const actions = appointment.status === 'Booked' ? [['Arrived', 'btn-outline-primary'], ['No-show', 'btn-outline-secondary']]
+                                       : appointment.status === 'Arrived' ? [['Done', 'btn-outline-primary'], ['No-show', 'btn-outline-secondary']] : []; %>
+                                    <tr>
+                                        <td><%= appointment.patientName %></td>
+                                        <td><%= appointment.displayTime %></td>
+                                        <td><%= appointment.specialty %></td>
+                                        <td><span class="reception-status"><%= appointment.status %></span></td>
+                                        <td class="reception-actions">
+                                            <% actions.forEach(([status, style]) => { %>
+                                                <form method="post" action="/reception/status">
+                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                                    <input type="hidden" name="id" value="<%= appointment.id %>" />
+                                                    <input type="hidden" name="status" value="<%= status %>" />
+                                                    <button class="btn btn-sm <%= style %>" type="submit"><%= status %></button>
+                                                </form>
+                                            <% }) %>
+                                            <% if (appointment.reminderHref) { %>
+                                                <a class="btn btn-sm btn-outline-secondary" href="<%= appointment.reminderHref %>">Send reminder</a>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            <% }) %>
+        <% } %>
+        <p class="reception-footnote">Send reminder opens a prefilled message in your email app; it does not send automatically.</p>
+    </div>
+</section>
+<%- include('partials/footer') %>

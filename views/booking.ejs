@@ -1,0 +1,134 @@
+<%- include('partials/header') %>
+<%
+  const fieldError = (field) => errors.filter((e) => e.field === field).map((e) => e.message);
+  const summaryErrors = errors;
+%>
+<section class="section-space">
+    <div class="container booking-container">
+        <span class="eyebrow">LET'S TAKE CARE OF YOU</span>
+        <h1 class="page-title">Book an appointment</h1>
+        <p>Choose your care, find a time and confirm your visit.</p>
+        <p class="form-text">AED 100 refundable deposit via Stripe test checkout. If you leave checkout without paying, your appointment remains Pending, not confirmed. Contact the clinic before booking again.</p>
+        <ol class="booking-steps" aria-label="Booking progress">
+            <% labels.forEach((label, index) => { %>
+                <li class="<%= index + 1 === step ? 'current' : index + 1 < step ? 'complete' : '' %>"<% if (index + 1 === step) { %> aria-current="step"<% } %>>
+                    <span><%= index + 1 %></span><%= label %>
+                </li>
+            <% }) %>
+        </ol>
+        <div class="booking-panel">
+            <form method="post" action="/Booking">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <input type="hidden" name="step" value="<%= step %>" />
+                <%- include('partials/errors', { errors: summaryErrors }) %>
+
+                <% if (step !== 1) { %><input type="hidden" name="specialty" value="<%= input.specialty %>" /><% } %>
+                <% if (step !== 2) { %><input type="hidden" name="doctor" value="<%= input.doctor %>" /><% } %>
+                <% if (step !== 3) { %>
+                    <input type="hidden" name="date" value="<%= input.date %>" />
+                    <input type="hidden" name="time" value="<%= input.time %>" />
+                <% } %>
+                <% if (step !== 4) { %>
+                    <input type="hidden" name="patientName" value="<%= input.patientName %>" />
+                    <input type="hidden" name="patientPhone" value="<%= input.patientPhone %>" />
+                    <input type="hidden" name="patientEmail" value="<%= input.patientEmail %>" />
+                <% } %>
+
+                <% if (step === 1) { %>
+                    <fieldset>
+                        <legend>1. Choose a specialty</legend>
+                        <div class="row g-3">
+                            <% Object.keys(doctors).forEach((specialty) => { %>
+                                <div class="col-sm-6">
+                                    <label class="choice-card">
+                                        <input type="radio" name="specialty" value="<%= specialty %>" required<% if (input.specialty === specialty) { %> checked<% } %> />
+                                        <span><%= specialty %></span>
+                                    </label>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </fieldset>
+                <% } else if (step === 2) { %>
+                    <fieldset>
+                        <legend>2. Choose a doctor</legend>
+                        <p><%= input.specialty %></p>
+                        <% if (Object.hasOwn(doctors, input.specialty)) { const doctor = doctors[input.specialty]; %>
+                            <label class="choice-card">
+                                <input type="radio" name="doctor" value="<%= doctor %>" required<% if (input.doctor === doctor) { %> checked<% } %> />
+                                <span><%= doctor %> <small><%= input.specialty %></small></span>
+                            </label>
+                        <% } %>
+                    </fieldset>
+                <% } else if (step === 3) { %>
+                    <h2 class="form-heading">3. Choose a date and time</h2>
+                    <p><%= input.doctor %> &middot; <%= input.specialty %></p>
+                    <div class="mb-4">
+                        <label for="date" class="form-label">Appointment date</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <input id="date" name="date" type="date" class="form-control date-input" min="<%= today %>" value="<%= input.date %>" />
+                            <button type="submit" class="btn btn-outline-primary" name="handler" value="Slots" formnovalidate>Show available times</button>
+                        </div>
+                    </div>
+                    <fieldset>
+                        <legend class="form-label">Time slot (Dubai time, UTC+4)</legend>
+                        <p class="form-text">Choose a date and select "Show available times" first. Mon-Sat, 9am-9pm. Last appointment: 8:30pm.</p>
+                        <div class="slot-grid">
+                            <% slots.forEach((slot) => { %>
+                                <label class="slot-choice <%= slot.unavailable ? 'unavailable' : '' %>">
+                                    <input type="radio" name="time" value="<%= slot.value %>" required<% if (slot.unavailable) { %> disabled<% } else if (input.time === slot.value) { %> checked<% } %> />
+                                    <span><%= slot.label %></span>
+                                </label>
+                            <% }) %>
+                        </div>
+                    </fieldset>
+                <% } else if (step === 4) { %>
+                    <h2 class="form-heading">4. Your details</h2>
+                    <% if (!currentUser) { %>
+                        <p>Already a patient? <a href="/Account/Login?returnUrl=%2FBooking">Log in before booking</a>, or continue as a guest. Use your own email to find this booking in your account later.</p>
+                    <% } %>
+                    <div class="mb-3">
+                        <label for="patientName" class="form-label">Full name</label>
+                        <input id="patientName" name="patientName" class="form-control" autocomplete="name" required minlength="2" maxlength="100" value="<%= input.patientName %>" />
+                        <% fieldError('patientName').forEach((m) => { %><span class="text-danger"><%= m %></span><% }) %>
+                    </div>
+                    <div class="mb-3">
+                        <label for="patientPhone" class="form-label">Phone number</label>
+                        <input id="patientPhone" name="patientPhone" type="tel" class="form-control" autocomplete="tel" required maxlength="30" value="<%= input.patientPhone %>" />
+                        <% fieldError('patientPhone').forEach((m) => { %><span class="text-danger"><%= m %></span><% }) %>
+                    </div>
+                    <div class="mb-3">
+                        <label for="patientEmail" class="form-label">Email</label>
+                        <input id="patientEmail" name="patientEmail" type="email" class="form-control" autocomplete="email" required maxlength="254" value="<%= input.patientEmail %>"<% if (currentUser) { %> readonly<% } %> />
+                        <% fieldError('patientEmail').forEach((m) => { %><span class="text-danger"><%= m %></span><% }) %>
+                        <% if (currentUser) { %>
+                            <div class="form-text">Your account email is used so this booking appears in My Appointments.</div>
+                        <% } %>
+                    </div>
+                <% } else { %>
+                    <h2 class="form-heading">Review your appointment</h2>
+                    <p>Check your details below. Confirming saves a Pending appointment and opens Stripe's secure test checkout for a one-off <strong>AED 100 refundable consultation deposit</strong>. Your booking is confirmed only after Stripe verifies payment.</p>
+                    <p class="form-text">Test mode only: no real money is charged. Contact the clinic to request a refund; cancelling a booking does not automatically refund a deposit. If you leave checkout, your appointment stays Pending.</p>
+                    <dl class="appointment-details">
+                        <dt>Specialty</dt><dd><%= input.specialty %></dd>
+                        <dt>Doctor</dt><dd><%= input.doctor %></dd>
+                        <dt>Date &amp; time</dt><dd><%= reviewDate %> at <%= reviewTime %> (Dubai)</dd>
+                        <dt>Patient</dt><dd><%= input.patientName %></dd>
+                        <dt>Phone</dt><dd><%= input.patientPhone %></dd>
+                        <dt>Email</dt><dd><%= input.patientEmail %></dd>
+                    </dl>
+                <% } %>
+                <div class="booking-actions">
+                    <% if (step > 1) { %>
+                        <button class="btn btn-outline-primary" type="submit" name="handler" value="Back" formnovalidate>Back</button>
+                    <% } %>
+                    <% if (step < 5) { %>
+                        <button class="btn btn-primary ms-auto" type="submit" name="handler" value="Next">Continue <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+                    <% } else { %>
+                        <button class="btn btn-primary ms-auto" type="submit" name="handler" value="Confirm">Confirm booking &amp; pay AED 100 <i class="bi bi-arrow-up-right" aria-hidden="true"></i></button>
+                    <% } %>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+<%- include('partials/footer') %>

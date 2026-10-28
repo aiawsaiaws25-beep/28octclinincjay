@@ -1,0 +1,13 @@
+<%- include('partials/header') %>
+<section class="section-space">
+    <div class="container booking-container">
+        <h1 class="page-title">Patient data in this prototype</h1>
+        <p>Confirming an appointment stores your name, phone number, email, specialty, doctor, appointment time and booking status in the clinic database. Patient accounts are stored in the same database; passwords are hashed with bcrypt and never stored in plain text.</p>
+        <p>Booking details are not saved while moving between the booking steps. No confirmation emails are sent. Signed-in patients can view and cancel appointments matching their account email.</p>
+        <p>Confirming creates a Pending appointment and a Stripe-hosted test checkout for an AED 100 consultation deposit. The database stores the checkout session ID. Stripe receives the appointment reference and handles payment details on its own website; the clinic application does not receive card numbers. Your appointment becomes Booked only after server-side payment verification.</p>
+        <p>Messages typed into the Ask Lakeside chat assistant are sent to Anthropic's Claude API to generate a reply. Please don't share personal or medical details in the chat.</p>
+        <div class="alert alert-warning">This is a development prototype. Email ownership is not verified yet. Use sample information only, not real patient data.</div>
+        <p>A clinic-specific privacy policy, data-retention rules and verified email ownership must be implemented before public use.</p>
+    </div>
+</section>
+<%- include('partials/footer') %>

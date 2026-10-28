@@ -1,0 +1,55 @@
+<%- include('partials/header') %>
+<section class="section-space">
+    <div class="container">
+        <div class="section-heading">
+            <div><span class="eyebrow">YOUR PATIENT SPACE</span><h1 class="page-title mb-0">My Appointments</h1></div>
+            <a class="btn btn-primary" href="/Booking">Book an appointment</a>
+        </div>
+        <p>Appointments for your account email, with the latest appointment date first. All times are in Dubai time (UTC+4).</p>
+        <% if (statusMessage) { %>
+            <div class="alert alert-success" role="status"><%= statusMessage %></div>
+        <% } %>
+        <% if (appointments.length === 0) { %>
+            <div class="booking-panel">
+                <h2 class="form-heading">No appointments yet</h2>
+                <p class="mb-0">Your bookings will appear here when you book with the same email address as your account.</p>
+            </div>
+        <% } else { %>
+            <div class="row g-4">
+                <% appointments.forEach((appointment) => { %>
+                    <div class="col-lg-6">
+                        <article class="booking-panel h-100">
+                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                <h2 class="form-heading mb-0"><%= appointment.specialty %></h2>
+                                <span class="status-badge <%= appointment.status === 'Cancelled' ? 'cancelled' : '' %>"><%= appointment.status %></span>
+                            </div>
+                            <p><%= appointment.doctor %></p>
+                            <dl class="appointment-details compact">
+                                <dt>Date &amp; time</dt><dd><%= appointment.when %></dd>
+                                <dt>Patient</dt><dd><%= appointment.patientName %></dd>
+                                <dt>Reference</dt><dd>LM-<%= appointment.id %></dd>
+                            </dl>
+                            <% if (appointment.status === 'Pending') { %>
+                                <p class="form-text">Deposit payment has not been verified. This appointment is not confirmed.</p>
+                                <% if (appointment.stripeSessionId) { %>
+                                    <a href="/booking-success?session_id=<%= encodeURIComponent(appointment.stripeSessionId) %>">Check payment status</a>
+                                <% } %>
+                            <% } %>
+                            <% if (appointment.status === 'Booked') { %>
+                                <form method="post" action="/MyAppointments/cancel">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                    <input type="hidden" name="id" value="<%= appointment.id %>" />
+                                    <button type="submit" class="btn btn-outline-danger">Cancel<span class="visually-hidden"> appointment LM-<%= appointment.id %></span></button>
+                                    <% if (appointment.stripeSessionId) { %>
+                                        <p class="form-text mt-2">Cancellation does not automatically refund your deposit. Please contact the clinic to request a refund.</p>
+                                    <% } %>
+                                </form>
+                            <% } %>
+                        </article>
+                    </div>
+                <% }) %>
+            </div>
+        <% } %>
+    </div>
+</section>
+<%- include('partials/footer') %>

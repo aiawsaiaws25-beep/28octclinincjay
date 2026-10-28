@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+<section class="section-space">
+    <div class="container">
+        <div class="account-panel">
+            <span class="eyebrow">WELCOME BACK</span>
+            <h1 class="page-title">Patient login</h1>
+            <p>View and manage your clinic appointments.</p>
+            <form method="post" action="/Account/Login">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <input type="hidden" name="returnUrl" value="<%= returnUrl %>" />
+                <%- include('partials/errors', { errors }) %>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input id="email" name="email" type="email" class="form-control" autocomplete="username" required value="<%= email %>" />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input id="password" name="password" type="password" class="form-control" autocomplete="current-password" required />
+                </div>
+                <div class="form-check mb-4">
+                    <input id="rememberMe" name="rememberMe" type="checkbox" class="form-check-input" />
+                    <label for="rememberMe" class="form-check-label">Remember me</label>
+                </div>
+                <button class="btn btn-primary w-100" type="submit">Login</button>
+            </form>
+            <p class="mt-4 mb-0">New here? <a href="/Account/Register?returnUrl=<%= encodeURIComponent(returnUrl) %>">Create an account</a></p>
+        </div>
+    </div>
+</section>
+<%- include('partials/footer') %>

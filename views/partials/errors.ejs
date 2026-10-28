@@ -1,0 +1,7 @@
+<% if (errors && errors.length) { %>
+<div class="text-danger" role="alert">
+    <ul>
+        <% errors.forEach((error) => { %><li><%= typeof error === 'string' ? error : error.message %></li><% }) %>
+    </ul>
+</div>
+<% } %>

@@ -1,0 +1,31 @@
+<%- include('partials/header') %>
+<section class="section-space">
+    <div class="container">
+        <div class="account-panel">
+            <span class="eyebrow">YOUR HEALTH, IN YOUR HANDS</span>
+            <h1 class="page-title">Create an account</h1>
+            <p>Keep track of your appointments in one place.</p>
+            <form method="post" action="/Account/Register">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <input type="hidden" name="returnUrl" value="<%= returnUrl %>" />
+                <%- include('partials/errors', { errors }) %>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input id="email" name="email" type="email" class="form-control" autocomplete="email" required maxlength="254" value="<%= email %>" />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input id="password" name="password" type="password" class="form-control" autocomplete="new-password" required minlength="8" maxlength="100" aria-describedby="password-help" />
+                    <div class="form-text" id="password-help">Use 8-100 characters, including uppercase and lowercase letters, a number and a symbol.</div>
+                </div>
+                <div class="mb-4">
+                    <label for="confirmPassword" class="form-label">Confirm password</label>
+                    <input id="confirmPassword" name="confirmPassword" type="password" class="form-control" autocomplete="new-password" required />
+                </div>
+                <button class="btn btn-primary w-100" type="submit">Register</button>
+            </form>
+            <p class="mt-4 mb-0">Already registered? <a href="/Account/Login?returnUrl=<%= encodeURIComponent(returnUrl) %>">Log in</a></p>
+        </div>
+    </div>
+</section>
+<%- include('partials/footer') %>

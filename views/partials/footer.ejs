@@ -1,0 +1,51 @@
+    </main>
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-top">
+                <a class="clinic-brand footer-brand" href="/">
+                    <span class="brand-mark" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
+                    <span>Lakeside<span class="brand-subtitle">MEDICAL CLINIC</span></span>
+                </a>
+                <p>Expert care, close to home.</p>
+                <a href="/#home" class="back-to-top">Back to top <i class="bi bi-arrow-up" aria-hidden="true"></i></a>
+            </div>
+            <div class="footer-bottom">
+                <small>&copy; <%= year %> Lakeside Medical Clinic. All rights reserved.</small>
+                <small>Lakeside Medical Clinic &middot; built at London International &middot; <a href="https://lisrc.ae" target="_blank" rel="noopener noreferrer">lisrc.ae<span class="visually-hidden"> (opens in a new tab)</span></a> &middot; by [Your name]</small>
+            </div>
+        </div>
+    </footer>
+
+    <section class="assistant-chat" aria-label="Ask Lakeside chat assistant">
+        <button class="assistant-chat-toggle" type="button" aria-expanded="false" aria-controls="assistant-chat-panel">
+            <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
+            <span>Ask Lakeside</span>
+        </button>
+        <div class="assistant-chat-panel" id="assistant-chat-panel" hidden>
+            <header class="assistant-chat-header">
+                <div>
+                    <strong>Ask Lakeside</strong>
+                    <span>Clinic information assistant</span>
+                </div>
+                <button class="assistant-chat-close" type="button" aria-label="Close chat">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </header>
+            <div class="assistant-chat-messages" role="log" aria-live="polite" aria-relevant="additions">
+                <p class="assistant-chat-message assistant-chat-reply">Hi! I can help with clinic specialties, doctors, hours, location, or the deposit.
+                    <span class="assistant-chat-signoff">— Lakeside Medical Clinic, powered by London International · lisrc.ae</span>
+                </p>
+            </div>
+            <form class="assistant-chat-form">
+                <label class="visually-hidden" for="assistant-chat-input">Your message</label>
+                <input id="assistant-chat-input" name="message" type="text" maxlength="2000" autocomplete="off" placeholder="Ask a question..." required />
+                <button type="submit" aria-label="Send message"><i class="bi bi-send-fill" aria-hidden="true"></i></button>
+            </form>
+            <p class="assistant-chat-disclaimer">Please don't share personal or medical details. No medical advice; seek emergency care for urgent concerns.</p>
+        </div>
+    </section>
+
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/assistant-chat.js"></script>
+</body>
+</html>
